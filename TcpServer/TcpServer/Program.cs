@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Threading;
 using System.Net.Sockets;
+using MPI;
 
 namespace TcpServer
 {
@@ -16,6 +17,8 @@ namespace TcpServer
         static private Thread genDataThread;
         static private bool userConnected = false;
         private static bool isGenerating = false;
+
+        private static int particeNumber = 10000;       
 
         // Connect user if there is slot available, otherwise send refuse message
         static private void ConnectUser(string userName, UserConnection sender)
@@ -139,11 +142,62 @@ namespace TcpServer
             Console.WriteLine(statusMessage);
         }
 
+        static private int Compute(Random rnd)
+        {
+            
+            return rnd.Next(1, 100);
+        }
+
         static void Main(string[] args)
         {
-            listenerThread = new Thread(DoListen);
-            listenerThread.Start();
-            Console.WriteLine("Listener started");
+            using (new MPI.Environment(ref args))
+            {
+                Intracommunicator comm = Communicator.world;
+
+                if(comm.Rank == 0)
+                {
+                    listenerThread = new Thread(DoListen);
+                    listenerThread.Start();
+                    Console.WriteLine("Listener started");
+                }
+
+                Random rnd = new Random();
+                int number = particeNumber / comm.Size;
+                int rest = particeNumber % comm.Size;
+
+                if(comm.Rank == comm.Size - 1)
+                {
+                    number += rest;
+                }
+
+                int[] particles = new int[number];
+                bool run = true;
+                while (run)
+                {
+                    for (int i = 0; i < number; i++)
+                    {
+                        //TODO podstawic metode liczaca
+                        particles[i] = Compute(rnd);
+                    }
+
+                    int[][] values = new int[comm.Size][];
+
+                    comm.Gather(particles, 0, ref values);
+                    if (comm.Rank == 0)
+                    {
+                        //TODO dac wysylanie wyniku, znajduje sie on w zmiennej values, pierwszy index to process, pod drugim sa wartosci
+                        for (int i = 0; i < comm.Size; i++)
+                        {
+                            for (int j = 0; j < values[i].Length; j++)
+                            {                             
+                                Console.WriteLine(i + " nr: " + j + " val " + values[i][j]);
+                            }
+                        }
+                    }
+                    System.Threading.Thread.Sleep(33);
+                   
+                }
+            }
         }
     }
 }
