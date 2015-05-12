@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{00000000-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{120C550D-2CAF-4F9B-BF33-DDBD0BB95054}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <NoStandardLibraries>false</NoStandardLibraries>
     <AssemblyName>ConsoleApplication</AssemblyName>
@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>ConsoleApplication2</RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -38,6 +41,23 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ConsoleApplication2\App.config" />
+    <None Include="ConsoleApplication2\bin\Debug\ConsoleApplication2.exe.config" />
+    <None Include="ConsoleApplication2\bin\Debug\ConsoleApplication2.vshost.exe.config" />
+    <None Include="ConsoleApplication2\bin\Debug\ConsoleApplication2.vshost.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ConsoleApplication2\Class1.cs" />
+    <Compile Include="ConsoleApplication2\Class2.cs" />
+    <Compile Include="ConsoleApplication2\Program.cs" />
+    <Compile Include="ConsoleApplication2\Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ConsoleApplication2\bin\Debug\ConsoleApplication2.exe" />
+    <Content Include="ConsoleApplication2\bin\Debug\ConsoleApplication2.pdb" />
+    <Content Include="ConsoleApplication2\bin\Debug\ConsoleApplication2.vshost.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
   <ProjectExtensions>
