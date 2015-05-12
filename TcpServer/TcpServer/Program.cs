@@ -203,12 +203,13 @@ namespace TcpServer
                 {
                     Random random = new Random();
                     double[] pozycja_startowa = new double[3];
-                    pozycja_startowa[0] = random.Next(0, (int)otoczenie.getRadius()) * Math.Pow(-1.0, (double)(random.Next(1, 2)));    //Losowanie współrzędnej x płatka z zakresu od 0 do R z losowym znakiem
+                    int promien = random.Next(0, (int)otoczenie.getRadius());
+                    pozycja_startowa[0] = (double)promien* Math.Pow(-1.0, (double)(random.Next(1, 2)));    //Losowanie współrzędnej x płatka z zakresu od 0 do R z losowym znakiem
                     pozycja_startowa[1] = random.Next(1, SCENE_HEIGHT);
-                    pozycja_startowa[2] = Math.Sqrt(Math.Pow((double)random.Next(0, (int)otoczenie.getRadius()), 2.0) - Math.Pow(pozycja_startowa[0], 2.0));  //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
+                    pozycja_startowa[2] = Math.Sqrt(Math.Pow((double)promien, 2.0) - Math.Pow(pozycja_startowa[0], 2.0));  //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
                     if (i == 100)
                         Console.WriteLine("Creating point 100, x: " + pozycja_startowa[0] + " y: " + pozycja_startowa[1] + " z: " + pozycja_startowa[2]);
-                    particles[i] = new SnowFlake(pPerProc*comm.Rank + i, pozycja_startowa, 0.001, 0.00000312);
+                    particles[i] = new SnowFlake(pPerProc*comm.Rank + i, pozycja_startowa, 0.000001, 0.00000312);
                 }
                 double K = otoczenie.getC_coefficient() * particles[0].getSize() * otoczenie.getDensity() * 0.5;
                 bool run = true;

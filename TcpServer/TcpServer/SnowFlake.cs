@@ -36,7 +36,7 @@ namespace TcpServer
         {
             double[] wynik = new double[3];
             wynik[0] = 0;
-            wynik[1] = Math.Sqrt(mass * gravity / K);
+            wynik[1] = -Math.Sqrt(mass * gravity / K);
             wynik[2] = 0;
             return wynik;
         }
