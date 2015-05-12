@@ -39,7 +39,11 @@ namespace ConsoleApplication2
             }
             double K = otoczenie.getC_coefficient() * platki[0].getSize() * otoczenie.getDensity() * 0.5;   //Liczmy współczynnik K niezbędny do obliczenia prędkości granicznej- takiej samej dla każdego płatka (zakładamy, że są identyczne)
             //Wyznaczenie pozycji pojedyńczego płatka (np. pierwszego):
-            platki[0].NewPosition(PlayerPos, platki[0].LimitedSpeed(platki[0].getMass(), otoczenie.getGravitation(), K), windStr, windDir, windStrFluc, windDirFluc, time_step, SceneHeight, radius);
+            platki[0].NewPosition(PlayerPos, platki[0].LimitedSpeed(platki[0].getMass(), otoczenie.getGravitation(), K),time_step, otoczenie);
+            System.Console.WriteLine((platki[0].getPosition())[0].ToString());
+            System.Console.WriteLine((platki[1].getPosition())[0].ToString());
+            System.Console.WriteLine((platki[2].getPosition())[0].ToString());
+            Console.ReadKey();
         }
     }
 }

@@ -70,5 +70,9 @@ namespace ConsoleApplication2
         {
             return sPiecesNum;
         }
+        public double getSceneHeight()
+        {
+            return Scene_Height;
+        }
     }
 }

@@ -41,7 +41,7 @@ namespace ConsoleApplication2
             return wynik;
         }
         //Najważniejsza funkcja- obliczanie nowej pozycji płatka będącej wypadkową warunków atmosferycznych, prędkości granicznej i aktualnego położenia płatka (może istnieć koniecznośc jego symetrycznego odbicia względem kamery)
-        public void NewPosition(double[] PlayerPos, double[] LimitSpeed, double windStr, double[] windDir, double windStrFluc, double windDirFluc, double time, double Scene_Height, byte radius)
+        public void NewPosition(double[] PlayerPos, double[] LimitSpeed, double time, Environment otoczenie)
         {
 
             Random random = new Random();
@@ -50,7 +50,7 @@ namespace ConsoleApplication2
             for (int i = 0; i < 3; i++)
             {
                 //Wyznaczenie składowych wektora prędkości wiatru- z uwzględnieniem fluktuancji siły i kierunku wiatru
-                r[i] = random.Next((int)System.Math.Max(windStr - windStrFluc, 0), (int)(windStr + windStrFluc)) * random.Next((int)(100 * System.Math.Max(windDir[i] - windDirFluc, 0)), (int)(100 * (windDir[i]))) * 0.001;
+                r[i] = random.Next((int)System.Math.Max(otoczenie.getWindStr() - otoczenie.getWindStrFluc(), 0), (int)(otoczenie.getWindStr() + otoczenie.getWindStrFluc())) * random.Next((int)(100 * System.Math.Max((otoczenie.getWindDir())[i] - otoczenie.getWindDirFluc(), 0)), (int)(100 * (otoczenie.getWindDir())[i])) * 0.01;
             }
 
             double[] T = new double[3];
@@ -70,10 +70,10 @@ namespace ConsoleApplication2
             }
             //Sprawdzenie, czy nie wystąpiła kolizja z podłożem
             if (Pos[1] <= 0)
-                Pos[1] = Scene_Height;
+                Pos[1] = otoczenie.getSceneHeight();
             //Sprawdzenie, czy kamera nie oddaliła się od płatka o odległość większą niż promień sceny 
             double distance = Math.Sqrt(Math.Pow(PlayerPos[0] - Pos[0], 2) + Math.Pow(PlayerPos[2] - Pos[2], 2));
-            if (distance >= radius)
+            if (distance >= otoczenie.getRadius())
             {
                 Pos[0] = PlayerPos[0] + (PlayerPos[0] - Pos[0]);
                 Pos[2] = PlayerPos[2] + (PlayerPos[2] - Pos[2]);
@@ -93,6 +93,10 @@ namespace ConsoleApplication2
         public double getMass()
         {
             return mass;
+        }
+        public double[] getPosition()
+        {
+            return Pos;
         }
     }
 }
