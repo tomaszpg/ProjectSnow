@@ -22,7 +22,7 @@ namespace ConsoleApplication2
             size = size_init;
         }
         //Funkcja pozwalająca nadać płatkom jakieś pozycje początkowe
-        public double[] pozycja_startowa(int i, byte r, byte R, byte SceneHeight)    //i- indeks płatka, r- promień tworzenia płatków, R- promień sceny
+        /*public double[] pozycja_startowa(int i, byte r, byte R, byte SceneHeight)    //i- indeks płatka, r- promień tworzenia płatków, R- promień sceny
         {
             Random random = new Random();
             double[] wynik = new double[3];
@@ -30,7 +30,7 @@ namespace ConsoleApplication2
             wynik[1] = SceneHeight;
             wynik[2] = Math.Sqrt(Math.Pow((double)random.Next(r, (int)R), 2.0) - Math.Pow(wynik[0], 2.0));  //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
             return wynik;
-        }
+        }*/
         //Funkcja obliczająca wartość prędkości granicznej płatka- wektor o zerowych współrzędnych x i z.
         public double[] LimitedSpeed(double mass, double gravity, double K)
         {
