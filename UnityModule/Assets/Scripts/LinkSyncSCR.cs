@@ -25,7 +25,7 @@ public class LinkSyncSCR : MonoBehaviour
         if (Input.GetKeyDown("p"))
         {
             Debug.Log("Sending example properties to server");
-            test.SendProperties(200, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f);
+            test.SendProperties(200, 10.0f, 5.0f, 1.0f, 0.5f, 0.1f, 10.0f, 40.0f);
         }
         if (Input.GetKeyDown("o"))
         {

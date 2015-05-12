@@ -9,12 +9,16 @@ namespace TcpServer
 {
     class Program
     {
+        static private double[] PlayerPos = new double[3];       //Alokacja pamięci dla wektora położenia obserwatora (kamery)
+        const double time_step = 0.033;               //odstęp między klatkami - stały [s]
+        private const byte SCENE_HEIGHT = 20;
+        private static SnowEnvironment otoczenie;
         const int PORT_NUM = 10000;
         static private Hashtable clients = new Hashtable();
         static private UserConnection mainClient;
         static private TcpListener listener;
         static private Thread listenerThread;
-        static private Thread genDataThread;
+        //static private Thread genDataThread;
         static private bool userConnected = false;
         private static bool isGenerating = false;
 
@@ -35,8 +39,8 @@ namespace TcpServer
                 mainClient = sender;
                 ReplyToSender("JOIN", sender);
                 userConnected = true;
-                genDataThread = new Thread(GenerateData);
-                genDataThread.Start();
+                //genDataThread = new Thread(GenerateData);
+                //genDataThread.Start();
             }
         }
 
@@ -112,7 +116,9 @@ namespace TcpServer
             {
                 case "POS": // Player position received
                     // Comment on regular position updates for efficiency
-                    Console.WriteLine("Position received: " + dataArray[1] + " " + dataArray[2]);
+                    PlayerPos[0] = float.Parse(dataArray[1]);
+                    PlayerPos[2] = float.Parse(dataArray[2]);
+                    Console.WriteLine("Position received: " + PlayerPos[0] + " " + PlayerPos[2]);
                     break;
                 case "CONNECT": // New user is trying to connect
                     ConnectUser(dataArray[1], sender);
@@ -125,7 +131,16 @@ namespace TcpServer
                     //Console.WriteLine("RS");
                     break;
                 case "PROP": // Confirmation from client about packet reception
-                    Console.WriteLine("New properties received");
+                    double[] windDirInit = new double[3];
+                    windDirInit[0] = 0.5;
+                    windDirInit[1] = float.Parse(dataArray[5]);
+                    windDirInit[2] = 0.5;
+                    otoczenie = new SnowEnvironment(Int32.Parse(dataArray[1]), (byte)float.Parse(dataArray[7]), (byte)float.Parse(dataArray[3]), 
+                        windDirInit, (byte)float.Parse(dataArray[4]), float.Parse(dataArray[6]), 1.25, 9.81, 0.3, SCENE_HEIGHT);
+                    //Console.WriteLine("New properties received");
+                    Console.WriteLine("NOP: " + dataArray[1] +"\nRadius: "+ dataArray[7] +"\nWind Strength: "+ dataArray[3] +"\nWind direction cos[1]: "+
+                        windDirInit[1] +"\nStrength fluctuation: "+ dataArray[4] +"\nDirection fluctuation: "+ dataArray[6]);
+                    mainClient.clientReady = true;
                     break;
             }
         }
@@ -161,38 +176,71 @@ namespace TcpServer
                     Console.WriteLine("Listener started");
                 }
 
+                // Wait in loop for user to connect
+                while (!userConnected)
+                    Thread.Sleep(10);
+
+                Console.WriteLine("User connected, waiting for new properties");
+
+                // Wait in loop to get simulation properties
+                while (!mainClient.clientReady)
+                    Thread.Sleep(10);
+
+                Console.WriteLine("Properties received, starting simulation");
+
                 Random rnd = new Random();
-                int number = particeNumber / comm.Size;
-                int rest = particeNumber % comm.Size;
+                int pPerProc = otoczenie.getPiecesNumber() / comm.Size;
+                int number = otoczenie.getPiecesNumber() / comm.Size;
+                int rest = otoczenie.getPiecesNumber() % comm.Size;
 
                 if(comm.Rank == comm.Size - 1)
                 {
                     number += rest;
                 }
-
-                int[] particles = new int[number];
+                SnowFlake[] particles = new SnowFlake[number];
+                //int[] particles = new int[number];
+                for (int i = 0; i < number; i++)  //Inicjalizacja każdego płatka wraz z nadaniem pozycji startowej
+                {
+                    Random random = new Random();
+                    double[] pozycja_startowa = new double[3];
+                    pozycja_startowa[0] = random.Next(0, (int)otoczenie.getRadius()) * Math.Pow(-1.0, (double)(random.Next(1, 2)));    //Losowanie współrzędnej x płatka z zakresu od 0 do R z losowym znakiem
+                    pozycja_startowa[1] = random.Next(1, SCENE_HEIGHT);
+                    pozycja_startowa[2] = Math.Sqrt(Math.Pow((double)random.Next(0, (int)otoczenie.getRadius()), 2.0) - Math.Pow(pozycja_startowa[0], 2.0));  //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
+                    if (i == 100)
+                        Console.WriteLine("Creating point 100, x: " + pozycja_startowa[0] + " y: " + pozycja_startowa[1] + " z: " + pozycja_startowa[2]);
+                    particles[i] = new SnowFlake(pPerProc*comm.Rank + i, pozycja_startowa, 0.001, 0.00000312);
+                }
+                double K = otoczenie.getC_coefficient() * particles[0].getSize() * otoczenie.getDensity() * 0.5;
                 bool run = true;
                 while (run)
                 {
                     for (int i = 0; i < number; i++)
                     {
                         //TODO podstawic metode liczaca
-                        particles[i] = Compute(rnd);
+                        particles[i].NewPosition(PlayerPos, particles[0].LimitedSpeed(particles[0].getMass(), otoczenie.getGravitation(), K), time_step, otoczenie);
+                        //particles[i] = Compute(rnd);
                     }
 
-                    int[][] values = new int[comm.Size][];
+                    SnowFlake[][] values = new SnowFlake[comm.Size][];
 
                     comm.Gather(particles, 0, ref values);
                     if (comm.Rank == 0)
                     {
+                        PostitionsPacket posPack = new PostitionsPacket(mainClient);
                         //TODO dac wysylanie wyniku, znajduje sie on w zmiennej values, pierwszy index to process, pod drugim sa wartosci
                         for (int i = 0; i < comm.Size; i++)
                         {
                             for (int j = 0; j < values[i].Length; j++)
-                            {                             
-                                Console.WriteLine(i + " nr: " + j + " val " + values[i][j]);
+                            {
+                                double[] position = values[i][j].getPosition();
+                                //posPack.AddPosition(pPerProc * i + values[i][j].getId(), (float)position[0], (float)position[1], (float)position[2]);
+                                
+                                if (pPerProc * i + values[i][j].getId() == 100)
+                                    Console.WriteLine(i + " nr: " + j + " x: " + (float)position[0] + " y: " + (float)position[1] + " z: " + (float)position[2]);
+                                
                             }
                         }
+                        //posPack.SendPacket();
                     }
                     System.Threading.Thread.Sleep(33);
                    
