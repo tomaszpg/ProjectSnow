@@ -29,6 +29,7 @@ public class UserConnection
     private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
     private string strName;
     public bool readySend = true;
+    public bool clientReady = false;
 
     public string Name
     {
@@ -151,10 +152,12 @@ public class UserConnection
                     //
                     // CALL FUNCTION HERE
                     //
+                    /*
                     Console.WriteLine("New Properties: \nNumber of particles: " + numP + "\nSize: " + sizeP + "\nWind strength: " + wStrP + 
                         "\nWind strength fluctuation: " + wStrFlucP + "\nWind direction: " + wDirP + "\nWind direction fluctuation: " + wDirFlucP +
                         "\nRadius: " + radiusP + "\nNoise: " + noiseP);
-                    strMessage = "PROP";
+                    */
+                    strMessage = "PROP|" + numP + "|" + sizeP + "|" + wStrP + "|" + wStrFlucP + "|" + wDirP + "|" + wDirFlucP + "|" + radiusP + "|" + noiseP;
                     break;
             }
 
