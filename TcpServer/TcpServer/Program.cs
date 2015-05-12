@@ -207,44 +207,48 @@ namespace TcpServer
                     pozycja_startowa[0] = (double)promien* Math.Pow(-1.0, (double)(random.Next(1, 2)));    //Losowanie współrzędnej x płatka z zakresu od 0 do R z losowym znakiem
                     pozycja_startowa[1] = random.Next(1, SCENE_HEIGHT);
                     pozycja_startowa[2] = Math.Sqrt(Math.Pow((double)promien, 2.0) - Math.Pow(pozycja_startowa[0], 2.0));  //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
-                    if (i == 100)
-                        Console.WriteLine("Creating point 100, x: " + pozycja_startowa[0] + " y: " + pozycja_startowa[1] + " z: " + pozycja_startowa[2]);
+                    //if (i == 100)
+                    //Console.WriteLine("Creating point 100, x: " + pozycja_startowa[0] + " y: " + pozycja_startowa[1] + " z: " + pozycja_startowa[2]);
                     particles[i] = new SnowFlake(pPerProc*comm.Rank + i, pozycja_startowa, 0.000001, 0.00000312);
                 }
                 double K = otoczenie.getC_coefficient() * particles[0].getSize() * otoczenie.getDensity() * 0.5;
                 bool run = true;
                 while (run)
                 {
-                    for (int i = 0; i < number; i++)
+                    try
                     {
-                        //TODO podstawic metode liczaca
-                        particles[i].NewPosition(PlayerPos, particles[0].LimitedSpeed(particles[0].getMass(), otoczenie.getGravitation(), K), time_step, otoczenie);
-                        //particles[i] = Compute(rnd);
-                    }
-
-                    SnowFlake[][] values = new SnowFlake[comm.Size][];
-
-                    comm.Gather(particles, 0, ref values);
-                    if (comm.Rank == 0)
-                    {
-                        PostitionsPacket posPack = new PostitionsPacket(mainClient);
-                        //TODO dac wysylanie wyniku, znajduje sie on w zmiennej values, pierwszy index to process, pod drugim sa wartosci
-                        for (int i = 0; i < comm.Size; i++)
+                        for (int i = 0; i < number; i++)
                         {
-                            for (int j = 0; j < values[i].Length; j++)
-                            {
-                                double[] position = values[i][j].getPosition();
-                                //posPack.AddPosition(pPerProc * i + values[i][j].getId(), (float)position[0], (float)position[1], (float)position[2]);
-                                
-                                if (pPerProc * i + values[i][j].getId() == 100)
-                                    Console.WriteLine(i + " nr: " + j + " x: " + (float)position[0] + " y: " + (float)position[1] + " z: " + (float)position[2]);
-                                
-                            }
+                            particles[i].NewPosition(PlayerPos, particles[0].LimitedSpeed(particles[0].getMass(), otoczenie.getGravitation(), K), time_step, otoczenie);
+                            //particles[i] = Compute(rnd);
                         }
-                        //posPack.SendPacket();
+
+                        SnowFlake[][] values = new SnowFlake[comm.Size][];
+
+                        comm.Gather(particles, 0, ref values);
+                        if (comm.Rank == 0)
+                        {
+                            PostitionsPacket posPack = new PostitionsPacket(mainClient);
+                            for (int i = 0; i < comm.Size; i++)
+                            {
+                                for (int j = 0; j < values[i].Length; j++)
+                                {
+                                    double[] position = values[i][j].getPosition();
+                                    posPack.AddPosition(pPerProc * i + values[i][j].getId(), (float)position[0], (float)position[1], (float)position[2]);
+
+                                    //if (pPerProc * i + values[i][j].getId() == 100)
+                                    //Console.WriteLine(i + " nr: " + j + " x: " + (float)position[0] + " y: " + (float)position[1] + " z: " + (float)position[2]);
+                                }
+                            }
+                            posPack.SendPacket();
+                        }
+                        System.Threading.Thread.Sleep(33);
                     }
-                    System.Threading.Thread.Sleep(33);
-                   
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Client is no longer subscribing, please restart server");
+                        run = false;
+                    }
                 }
             }
         }
