@@ -188,7 +188,7 @@ namespace TcpServer
 
                 Console.WriteLine("Properties received, starting simulation");
 
-                Random rnd = new Random();
+                Random random = new Random();
                 int pPerProc = otoczenie.getPiecesNumber() / comm.Size;
                 int number = otoczenie.getPiecesNumber() / comm.Size;
                 int rest = otoczenie.getPiecesNumber() % comm.Size;
@@ -201,14 +201,15 @@ namespace TcpServer
                 //int[] particles = new int[number];
                 for (int i = 0; i < number; i++)  //Inicjalizacja każdego płatka wraz z nadaniem pozycji startowej
                 {
-                    Random random = new Random();
                     double[] pozycja_startowa = new double[3];
-                    int promien = random.Next(0, (int)otoczenie.getRadius());
-                    pozycja_startowa[0] = (double)promien* Math.Pow(-1.0, (double)(random.Next(1, 2)));    //Losowanie współrzędnej x płatka z zakresu od 0 do R z losowym znakiem
-                    pozycja_startowa[1] = random.Next(1, SCENE_HEIGHT);
-                    pozycja_startowa[2] = Math.Sqrt(Math.Pow((double)promien, 2.0) - Math.Pow(pozycja_startowa[0], 2.0));  //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
-                    //if (i == 100)
-                    //Console.WriteLine("Creating point 100, x: " + pozycja_startowa[0] + " y: " + pozycja_startowa[1] + " z: " + pozycja_startowa[2]);
+                    int promien = (int)otoczenie.getRadius();
+                    pozycja_startowa[0] = (double)(random.Next(1, 10000))/10000 * (double)promien * Math.Pow(-1.0, (double)(random.Next(1, 3)));    //Losowanie współrzędnej x płatka z zakresu od 0 do R z losowym znakiem
+                    pozycja_startowa[1] = (double)(random.Next(1, SCENE_HEIGHT*1000))/1000;
+                    pozycja_startowa[2] = (double)(random.Next(1, 10000))/10000 * Math.Sqrt(promien*promien - pozycja_startowa[0]*pozycja_startowa[0])*
+                                          Math.Pow(-1.0, (double) (random.Next(1, 3)));
+                    //pozycja_startowa[2] = (double)(random.Next(1, 10000)) / 10000 * (double)promien * Math.Pow(-1.0, (double)(random.Next(1, 2)));   //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
+                    //if (i == 100 || i == 120 || i == 140)
+                        //Console.WriteLine("Creating point " + i + ", x: " + pozycja_startowa[0] + " y: " + pozycja_startowa[1] + " z: " + pozycja_startowa[2]);
                     particles[i] = new SnowFlake(pPerProc*comm.Rank + i, pozycja_startowa, 0.000001, 0.00000312);
                 }
                 double K = otoczenie.getC_coefficient() * particles[0].getSize() * otoczenie.getDensity() * 0.5;

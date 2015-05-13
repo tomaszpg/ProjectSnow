@@ -141,7 +141,7 @@ namespace SharpConnect
         {
             try
             {
-                Thread.Sleep(1);
+                Thread.Sleep(2);
                 // Finish asynchronous read into readBuffer and return number of bytes read
                 int BytesRead = client.GetStream().EndRead(ar);
                 //Debug.Log("Message came, size: " + BytesRead);
