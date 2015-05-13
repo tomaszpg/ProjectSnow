@@ -11,6 +11,7 @@ public class LinkSyncSCR : MonoBehaviour
     private const string IP_ADDRESS = "127.0.0.1";
     public GameObject cube;
     public Connector test;
+    public GameObject[] snowflakes= new GameObject[200];
 
     void Start()
     {
@@ -21,13 +22,24 @@ public class LinkSyncSCR : MonoBehaviour
         {
             Debug.Log(test.res);
         }
+
+        initializeSnowlakes();
+    }
+
+    public void initializeSnowlakes()
+    {
+        for (int i = 0; i < 200; i++)
+            snowflakes[i] = (GameObject)GameObject.Instantiate(Resources.Load("snowflake", typeof(GameObject)), new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity) as GameObject;
     }
 
     void movePiece(int num, float x, float y, float z)
     {
         // to dziala tylko dla numeru 100, uzywa wtedy jako "platka" tej kostki na scenie, ale mozna w petli puscic dla tablicy
-        if (num == 100)
-            cube.transform.position = new Vector3(x, y, z);
+        
+        //if (num == 100)
+        //    cube.transform.position = new Vector3(x, y, z);
+           
+        snowflakes[num].transform.position = new Vector3(x, y, z);
     }
 
     void Update()
@@ -57,6 +69,7 @@ public class LinkSyncSCR : MonoBehaviour
             for (int i = 0; i < test.counter; i++)
             {
                 movePiece(test.flakes[i].number, test.flakes[i].x, test.flakes[i].y, test.flakes[i].z);
+                //Debug.Log(test.flakes[i].number + " " + test.flakes[i].x + " " + test.flakes[i].y + " " + test.flakes[i].z);
             }
             test.counter = 0;
         }

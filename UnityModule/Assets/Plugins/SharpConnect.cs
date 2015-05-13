@@ -26,6 +26,7 @@ namespace SharpConnect
         public GameObject cube;
         public SnowFlake[] flakes;
         public int snowUpdate;
+        //public GameObject[] snowflakes;
 
         public Connector() {}
 
@@ -112,6 +113,7 @@ namespace SharpConnect
             stream.Write(data, 0, data.Length);
             stream.Flush();
             flakes = new SnowFlake[num];
+            //snowflakes = new GameObject[num];
         }
 
         public void FnConfirm()
@@ -189,6 +191,7 @@ namespace SharpConnect
                             float yPos = System.BitConverter.ToSingle(readBuffer, i * 16 + 11); // y position
                             float zPos = System.BitConverter.ToSingle(readBuffer, i * 16 + 15); // z position
                             flakes[posNum] = new SnowFlake(posNum, xPos, yPos, zPos);
+                            //Debug.Log(posNum +" "+ xPos +" "+ yPos +" "+ zPos);
                         }
                         strMessage = "ACK";
                         break;
