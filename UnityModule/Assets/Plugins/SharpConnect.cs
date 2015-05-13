@@ -3,7 +3,6 @@
 // using it is very simple
 // Look at LinkSyncSCR.cs
 
-
 using System;
 using System.IO;
 using System.Net.Sockets;
@@ -24,8 +23,11 @@ namespace SharpConnect
         public string strMessage = string.Empty;
         public string res = string.Empty;
         public int counter = 0;
+        public GameObject cube;
+        public SnowFlake[] flakes;
+        public int snowUpdate;
 
-        public Connector() { }
+        public Connector() {}
 
         public string FnConnectResult(string sNetIP, int iPORT_NUM, string sUserName)
         {
@@ -56,6 +58,21 @@ namespace SharpConnect
             NetworkStream stream = client.GetStream();
             stream.Write(data, 0, data.Length);
             stream.Flush();
+        }
+
+        public struct SnowFlake
+        {
+            public SnowFlake(int num, float x, float y, float z)
+            {
+                this.number = num;
+                this.x = x;
+                this.y = y;
+                this.z = z;
+            }
+            public int number;
+            public float x;
+            public float y;
+            public float z;
         }
 
         public void SendPlayerPos(Vector3 pPosition)
@@ -94,6 +111,7 @@ namespace SharpConnect
             NetworkStream stream = client.GetStream();
             stream.Write(data, 0, data.Length);
             stream.Flush();
+            flakes = new SnowFlake[num];
         }
 
         public void FnConfirm()
@@ -170,9 +188,7 @@ namespace SharpConnect
                             float xPos = System.BitConverter.ToSingle(readBuffer, i * 16 + 7); // x position
                             float yPos = System.BitConverter.ToSingle(readBuffer, i * 16 + 11); // y position
                             float zPos = System.BitConverter.ToSingle(readBuffer, i * 16 + 15); // z position
-                            //
-                            // CALL FUNCTION HERE
-                            //
+                            flakes[posNum] = new SnowFlake(posNum, xPos, yPos, zPos);
                         }
                         strMessage = "ACK";
                         break;

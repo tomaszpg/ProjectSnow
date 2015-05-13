@@ -6,13 +6,15 @@ using System.Security.Permissions;
 
 public class LinkSyncSCR : MonoBehaviour
 {
-    public Connector test = new Connector();
     string lastMessage;
     public Transform playerCoord;
     private const string IP_ADDRESS = "127.0.0.1";
+    public GameObject cube;
+    public Connector test;
 
     void Start()
     {
+        test = new Connector();
         Debug.Log("Starting client, attempting connection to " + IP_ADDRESS);
         Debug.Log(test.FnConnectResult(IP_ADDRESS, 10000, System.Environment.MachineName));
         if (test.res != "")
@@ -20,12 +22,20 @@ public class LinkSyncSCR : MonoBehaviour
             Debug.Log(test.res);
         }
     }
+
+    void movePiece(int num, float x, float y, float z)
+    {
+        // to dziala tylko dla numeru 100, uzywa wtedy jako "platka" tej kostki na scenie, ale mozna w petli puscic dla tablicy
+        if (num == 100)
+            cube.transform.position = new Vector3(x, y, z);
+    }
+
     void Update()
     {
         if (Input.GetKeyDown("p"))
         {
             Debug.Log("Sending example properties to server");
-            test.SendProperties(200, 10.0f, 5.0f, 1.0f, 0.5f, 0.1f, 10.0f, 40.0f);
+            test.SendProperties(200, 10.0f, 5.0f, 1.0f, 0.5f, 0.1f, 40.0f, 40.0f);
         }
         if (Input.GetKeyDown("o"))
         {
@@ -41,6 +51,14 @@ public class LinkSyncSCR : MonoBehaviour
         {
             Debug.Log(test.res);
             lastMessage = test.res;
+        }
+        if (test.counter != 0)
+        {
+            for (int i = 0; i < test.counter; i++)
+            {
+                movePiece(test.flakes[i].number, test.flakes[i].x, test.flakes[i].y, test.flakes[i].z);
+            }
+            test.counter = 0;
         }
     }
 
