@@ -46,11 +46,24 @@ namespace TcpServer
 
             Random random = new Random();
             double[] r = new double[3];
-
+			//Wyznaczenie składowych wektora prędkości wiatru- z uwzględnieniem fluktuancji siły i kierunku wiatru
             for (int i = 0; i < 3; i++)
             {
-                //Wyznaczenie składowych wektora prędkości wiatru- z uwzględnieniem fluktuancji siły i kierunku wiatru
-                r[i] = random.Next((int)System.Math.Max(otoczenie.getWindStr() - otoczenie.getWindStrFluc(), 0), (int)(otoczenie.getWindStr() + otoczenie.getWindStrFluc())) * random.Next((int)(100 * System.Math.Max((otoczenie.getWindDir())[i] - otoczenie.getWindDirFluc(), 0)), (int)(100 * (otoczenie.getWindDir())[i])) * 0.01;
+				int random_variable=random.Next(0,100);
+				if(random_variable>40)
+					otoczenie.setWindDir_now(otoczenie.getWindDir_now());
+				else
+				{
+					for(double j=60.0; j<100.0; j+=10.0)
+					{
+
+						if((double)random_variable>j)
+						{
+							double range_divisor=(100.0-j)/10.0;
+                			r[i] = random.Next((int)System.Math.Max(otoczenie.getWindStr() - otoczenie.getWindStrFluc(), 0), (int)(otoczenie.getWindStr() + otoczenie.getWindStrFluc())) * random.Next((int)(100 * System.Math.Max((otoczenie.getWindDir_now())[i] - otoczenie.getWindDirFluc()/range_divisor, 0)), (int)(100 * (otoczenie.getWindDir_now())[i])) * 0.01;
+						}
+					}
+				}
             }
 
             double[] T = new double[3];
