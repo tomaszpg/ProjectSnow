@@ -16,8 +16,6 @@ namespace TcpServer
         const int PORT_NUM = 10000;
         static private Hashtable clients = new Hashtable();
         static private UserConnection mainClient;
-        static private TcpListener listener;
-        static private Thread listenerThread;
         //static private Thread genDataThread;
         static private bool userConnected = false;
         private static bool isGenerating = false;
@@ -60,9 +58,8 @@ namespace TcpServer
             try
             {
                 // Listen for new connections
-                listener = new TcpListener(System.Net.IPAddress.Any, PORT_NUM);
+                TcpListener listener = new TcpListener(System.Net.IPAddress.Any, PORT_NUM);
                 listener.Start();
-
                 do
                 {
                     // Create a new user connection using TcpClient
@@ -113,7 +110,6 @@ namespace TcpServer
             dataArray = data.Split((char)13);
             dataArray = dataArray[0].Split((char)124);
             // dataArray(0) is the command
-            Console.WriteLine("received");
             
             switch (dataArray[0])
             {
@@ -131,7 +127,7 @@ namespace TcpServer
                     break;
                 case "ACK": // Confirmation from client about packet reception
                     mainClient.readySend = true;
-                    Console.WriteLine("RS");
+                    //Console.WriteLine("RS");
                     break;
                 case "PROP": // Confirmation from client about packet reception
                     //Console.WriteLine("Parsing...");
@@ -210,7 +206,7 @@ namespace TcpServer
 
                 if(comm.Rank == 0)
                 {
-                    listenerThread = new Thread(DoListen);
+                    Thread listenerThread = new Thread(DoListen);
                     listenerThread.Start();
                     Console.WriteLine("Listener started");
                 }
