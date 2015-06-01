@@ -18,6 +18,7 @@ namespace TcpServer
         private double gravitation; //stała grawitacji
         private double C_coefficient;   //Współczynnik C- podobno zawsze równy 0.3
         private byte Scene_Height;  //Wysokość sceny
+		private double[] windDir_now;
         public SnowEnvironment(int sPiecesNum_init, byte radius_int, byte windStr_init, double[] windDir_init, byte windStrFluc_init, double windDirFluc_init, double density_init, double gravitation_init, double C_coefficient_init, byte Scene_Height_init)
         {
             sPiecesNum = sPiecesNum_init;
@@ -26,6 +27,8 @@ namespace TcpServer
             windDir = new double[3];
             for (int i = 0; i < 3; i++)
                 windDir[i] = windDir_init[i];
+			for (int i = 0; i < 3; i++)
+				windDir_now[i] = windDir_init[i];
             windStrFluc = windStrFluc_init;
             windDirFluc = windDirFluc_init;
             density = density_init;
@@ -74,5 +77,14 @@ namespace TcpServer
         {
             return Scene_Height;
         }
+		public double[] getWindDir_now()
+		{
+			return windDir_now;
+		}
+		public void setWindDir_now(double[] setDir)
+		{
+			for (int i=0; i<3; i++)
+				windDir_now [i] = setDir [i];
+		}
     }
 }
