@@ -204,78 +204,104 @@ namespace TcpServer
             {
                 Intracommunicator comm = Communicator.world;
 
-                if(comm.Rank == 0)
+                if (comm.Rank == 0)
                 {
                     Thread listenerThread = new Thread(DoListen);
                     listenerThread.Start();
                     Console.WriteLine("Listener started");
                 }
 
-                if (comm.Rank == 0)
+                while (true)
                 {
-                    // Wait in loop for user to connect
-                    while (!userConnected)
+                    if (comm.Rank == 0)
                     {
-                        Thread.Sleep(10);
-                    }
-                    Console.WriteLine("User connected, waiting for new properties");
-                }
-
-                comm.Broadcast(ref userConnected, 0);          
-
-                // Wait in loop to get simulation properties
-                if (comm.Rank == 0)
-                {
-                    while (!mainClient.clientReady)
-                    {
-                        Thread.Sleep(10);
-                    }
-                    Console.WriteLine("Properties received, starting simulation");
-                }
-
-                //SnowEnvironment snowEnvironment = otoczenie;
-                comm.Broadcast(ref otoczenie, 0);
-
-                InitComp(comm);
-
-                bool run = true;
-                while (run)
-                {
-                    try
-                    {
-                        comm.Broadcast(ref PlayerPos, 0);
-                        for (int i = 0; i < number; i++)
+                        Console.WriteLine("Starting new connection");
+                        // Wait in loop for user to connect
+                        while (!userConnected)
                         {
-                            particles[i].NewPosition(PlayerPos, particles[0].LimitedSpeed(particles[0].getMass(), otoczenie.getGravitation(), K), time_step, otoczenie);
-                            //particles[i] = Compute(rnd);
+                            Thread.Sleep(10);
                         }
-                        SnowFlake[][] values = new SnowFlake[comm.Size][];
+                        Console.WriteLine("User connected, waiting for new properties");
+                    }
 
-                        comm.Gather(particles, 0, ref values);
-                        if (comm.Rank == 0)
+                    comm.Broadcast(ref userConnected, 0);
+
+                    // Wait in loop to get simulation properties
+                    if (comm.Rank == 0)
+                    {
+                        while (!mainClient.clientReady)
                         {
-                            PostitionsPacket posPack = new PostitionsPacket(mainClient);
-                            for (int i = 0; i < comm.Size; i++)
-                            {
-                                for (int j = 0; j < values[i].Length; j++)
-                                {
-                                    double[] position = values[i][j].getPosition();
-                                    posPack.AddPosition(pPerProc * i + values[i][j].getId(), (float)position[0], (float)position[1], (float)position[2]);
+                            Thread.Sleep(10);
+                        }
+                        Console.WriteLine("Properties received, starting simulation");
+                    }
 
-                                    //if (pPerProc * i + values[i][j].getId() == 100)
-                                    //Console.WriteLine(i + " nr: " + j + " x: " + (float)position[0] + " y: " + (float)position[1] + " z: " + (float)position[2]);
+                    //SnowEnvironment snowEnvironment = otoczenie;
+                    comm.Broadcast(ref otoczenie, 0);
+
+                    InitComp(comm);
+
+                    bool run = true;
+                    while (run)
+                    {
+                        try
+                        {
+                            comm.Broadcast(ref PlayerPos, 0);
+                            for (int i = 0; i < number; i++)
+                            {
+                                particles[i].NewPosition(PlayerPos,
+                                    particles[0].LimitedSpeed(particles[0].getMass(), otoczenie.getGravitation(), K),
+                                    time_step, otoczenie);
+                                //particles[i] = Compute(rnd);
+                            }
+                            SnowFlake[][] values = new SnowFlake[comm.Size][];
+
+                            comm.Gather(particles, 0, ref values);
+
+                            if (comm.Rank == 0 && userConnected)
+                            {
+                                PostitionsPacket posPack = new PostitionsPacket(mainClient);
+                                for (int i = 0; i < comm.Size; i++)
+                                {
+                                    for (int j = 0; j < values[i].Length; j++)
+                                    {
+                                        double[] position = values[i][j].getPosition();
+                                        posPack.AddPosition(pPerProc*i + values[i][j].getId(), (float) position[0],
+                                            (float) position[1], (float) position[2]);
+
+                                        //if (pPerProc * i + values[i][j].getId() == 100)
+                                        //Console.WriteLine(i + " nr: " + j + " x: " + (float)position[0] + " y: " + (float)position[1] + " z: " + (float)position[2]);
+                                    }
+                                }
+                                if (userConnected)
+                                {
+                                    posPack.SendPacket();
                                 }
                             }
-                            posPack.SendPacket();
+
+                            comm.Broadcast(ref userConnected, 0);
+                            if (!userConnected)
+                            {
+                                run = false;
+                                userConnected = false;
+                                break;
+                            }
+
+                            comm.Broadcast(ref newConfig, 0);
+                            if (newConfig)
+                            {
+                                comm.Broadcast(ref otoczenie, 0);
+                                InitComp(comm);
+                            }
+
+                            System.Threading.Thread.Sleep(33);
                         }
-                        comm.Barrier();
-                        System.Threading.Thread.Sleep(33);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Client is no longer subscribing, please restart server");
-                        Console.WriteLine(e);
-                        run = false;
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Client is no longer subscribing, please restart server");
+                            Console.WriteLine(e);
+                            run = false;
+                        }
                     }
                 }
             }
