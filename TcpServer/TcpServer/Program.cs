@@ -21,6 +21,7 @@ namespace TcpServer
         //static private Thread genDataThread;
         static private bool userConnected = false;
         private static bool isGenerating = false;
+        private static bool newConfig = false;
 
         private static int particeNumber = 100;       
 
@@ -112,6 +113,8 @@ namespace TcpServer
             dataArray = data.Split((char)13);
             dataArray = dataArray[0].Split((char)124);
             // dataArray(0) is the command
+            Console.WriteLine("received");
+            
             switch (dataArray[0])
             {
                 case "POS": // Player position received
@@ -128,7 +131,7 @@ namespace TcpServer
                     break;
                 case "ACK": // Confirmation from client about packet reception
                     mainClient.readySend = true;
-                    //Console.WriteLine("RS");
+                    Console.WriteLine("RS");
                     break;
                 case "PROP": // Confirmation from client about packet reception
                     //Console.WriteLine("Parsing...");
@@ -168,6 +171,41 @@ namespace TcpServer
             return rnd.Next(1, 100);
         }
 
+        private static SnowFlake[] particles;
+        private static int number;
+        private static int pPerProc;
+        private static double K;
+
+        static private void InitComp(Intracommunicator comm)
+        {
+            newConfig = false;
+            Random random = new Random();
+            pPerProc = otoczenie.getPiecesNumber() / comm.Size;
+            number = otoczenie.getPiecesNumber() / comm.Size;
+            int rest = otoczenie.getPiecesNumber() % comm.Size;
+
+            if (comm.Rank == comm.Size - 1)
+            {
+                number += rest;
+            }
+            particles = new SnowFlake[number];
+            //int[] particles = new int[number];
+            for (int i = 0; i < number; i++)  //Inicjalizacja każdego płatka wraz z nadaniem pozycji startowej
+            {
+                double[] pozycja_startowa = new double[3];
+                int promien = (int)otoczenie.getRadius();
+                pozycja_startowa[0] = (double)(random.Next(1, 10000)) / 10000 * (double)promien * Math.Pow(-1.0, (double)(random.Next(1, 3)));    //Losowanie współrzędnej x płatka z zakresu od 0 do R z losowym znakiem
+                pozycja_startowa[1] = (double)(random.Next(1, SCENE_HEIGHT * 1000)) / 1000;
+                pozycja_startowa[2] = (double)(random.Next(1, 10000)) / 10000 * Math.Sqrt(promien * promien - pozycja_startowa[0] * pozycja_startowa[0]) *
+                                      Math.Pow(-1.0, (double)(random.Next(1, 3)));
+                //pozycja_startowa[2] = (double)(random.Next(1, 10000)) / 10000 * (double)promien * Math.Pow(-1.0, (double)(random.Next(1, 2)));   //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
+                //if (i == 100 || i == 120 || i == 140)
+                //Console.WriteLine("Creating point " + i + ", x: " + pozycja_startowa[0] + " y: " + pozycja_startowa[1] + " z: " + pozycja_startowa[2]);
+                particles[i] = new SnowFlake(pPerProc * comm.Rank + i, pozycja_startowa, 0.000001, 0.00000312);
+            }
+            K = otoczenie.getC_coefficient() * particles[0].getSize() * otoczenie.getDensity() * 0.5;
+        }
+
         static void Main(string[] args)
         {
             using (new MPI.Environment(ref args))
@@ -181,54 +219,44 @@ namespace TcpServer
                     Console.WriteLine("Listener started");
                 }
 
-                // Wait in loop for user to connect
-                while (!userConnected)
-                    Thread.Sleep(10);
+                if (comm.Rank == 0)
+                {
+                    // Wait in loop for user to connect
+                    while (!userConnected)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    Console.WriteLine("User connected, waiting for new properties");
+                }
 
-                Console.WriteLine("User connected, waiting for new properties");
+                comm.Broadcast(ref userConnected, 0);          
 
                 // Wait in loop to get simulation properties
-                while (!mainClient.clientReady)
-                    Thread.Sleep(10);
-
-                Console.WriteLine("Properties received, starting simulation");
-
-                Random random = new Random();
-                int pPerProc = otoczenie.getPiecesNumber() / comm.Size;
-                int number = otoczenie.getPiecesNumber() / comm.Size;
-                int rest = otoczenie.getPiecesNumber() % comm.Size;
-
-                if(comm.Rank == comm.Size - 1)
+                if (comm.Rank == 0)
                 {
-                    number += rest;
+                    while (!mainClient.clientReady)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    Console.WriteLine("Properties received, starting simulation");
                 }
-                SnowFlake[] particles = new SnowFlake[number];
-                //int[] particles = new int[number];
-                for (int i = 0; i < number; i++)  //Inicjalizacja każdego płatka wraz z nadaniem pozycji startowej
-                {
-                    double[] pozycja_startowa = new double[3];
-                    int promien = (int)otoczenie.getRadius();
-                    pozycja_startowa[0] = (double)(random.Next(1, 10000))/10000 * (double)promien * Math.Pow(-1.0, (double)(random.Next(1, 3)));    //Losowanie współrzędnej x płatka z zakresu od 0 do R z losowym znakiem
-                    pozycja_startowa[1] = (double)(random.Next(1, SCENE_HEIGHT*1000))/1000;
-                    pozycja_startowa[2] = (double)(random.Next(1, 10000))/10000 * Math.Sqrt(promien*promien - pozycja_startowa[0]*pozycja_startowa[0])*
-                                          Math.Pow(-1.0, (double) (random.Next(1, 3)));
-                    //pozycja_startowa[2] = (double)(random.Next(1, 10000)) / 10000 * (double)promien * Math.Pow(-1.0, (double)(random.Next(1, 2)));   //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
-                    //if (i == 100 || i == 120 || i == 140)
-                        //Console.WriteLine("Creating point " + i + ", x: " + pozycja_startowa[0] + " y: " + pozycja_startowa[1] + " z: " + pozycja_startowa[2]);
-                    particles[i] = new SnowFlake(pPerProc*comm.Rank + i, pozycja_startowa, 0.000001, 0.00000312);
-                }
-                double K = otoczenie.getC_coefficient() * particles[0].getSize() * otoczenie.getDensity() * 0.5;
+
+                //SnowEnvironment snowEnvironment = otoczenie;
+                comm.Broadcast(ref otoczenie, 0);
+
+                InitComp(comm);
+
                 bool run = true;
                 while (run)
                 {
                     try
                     {
+                        comm.Broadcast(ref PlayerPos, 0);
                         for (int i = 0; i < number; i++)
                         {
                             particles[i].NewPosition(PlayerPos, particles[0].LimitedSpeed(particles[0].getMass(), otoczenie.getGravitation(), K), time_step, otoczenie);
                             //particles[i] = Compute(rnd);
                         }
-
                         SnowFlake[][] values = new SnowFlake[comm.Size][];
 
                         comm.Gather(particles, 0, ref values);
@@ -248,11 +276,13 @@ namespace TcpServer
                             }
                             posPack.SendPacket();
                         }
+                        comm.Barrier();
                         System.Threading.Thread.Sleep(33);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         Console.WriteLine("Client is no longer subscribing, please restart server");
+                        Console.WriteLine(e);
                         run = false;
                     }
                 }

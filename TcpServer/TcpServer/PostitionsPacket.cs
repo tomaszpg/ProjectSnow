@@ -57,7 +57,9 @@ namespace TcpServer
         {
             if (counter != 0)
             {
-                while (!client.readySend) { }
+                while (!client.readySend)
+                {
+                }
                 int size = counter*16 + 3;
                 byte[] data = new byte[size];
                 byte[] positionCount = BitConverter.GetBytes(counter);

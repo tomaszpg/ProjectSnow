@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace TcpServer
 {
+    [Serializable]
     class SnowEnvironment
     {
         private int sPiecesNum;     //Liczba płatków
