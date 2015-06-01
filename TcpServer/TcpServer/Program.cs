@@ -131,9 +131,14 @@ namespace TcpServer
                     //Console.WriteLine("RS");
                     break;
                 case "PROP": // Confirmation from client about packet reception
+                    //Console.WriteLine("Parsing...");
+                    for (int i = 0; i < dataArray.Length; i++)
+                    {
+                        Console.WriteLine(dataArray[i]);
+                    }
                     double[] windDirInit = new double[3];
                     windDirInit[0] = 60;
-                    windDirInit[1] = float.Parse(dataArray[5]);
+                    windDirInit[1] = (double)float.Parse(dataArray[5]);
                     windDirInit[2] = 60;
                     otoczenie = new SnowEnvironment(Int32.Parse(dataArray[1]), (byte)float.Parse(dataArray[7]), (byte)float.Parse(dataArray[3]), 
                         windDirInit, (byte)float.Parse(dataArray[4]), float.Parse(dataArray[6]), 1.25, 9.81, 0.3, SCENE_HEIGHT);

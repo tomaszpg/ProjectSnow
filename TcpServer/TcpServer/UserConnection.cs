@@ -109,6 +109,7 @@ public class UserConnection
         int BytesRead;
         string strMessage = null;
         NetworkStream stream = client.GetStream();
+        
         try
         {
             // Ensure that no other threads try to use the stream at the same time.
@@ -116,6 +117,7 @@ public class UserConnection
             {
                 // Finish asynchronous read into readBuffer and get number of bytes read.
                 BytesRead = stream.EndRead(ar);
+                //Console.WriteLine("Packet came, size: " + BytesRead);
             }
             //Console.WriteLine("Message received, size: " + BytesRead);
             switch (readBuffer[0])
@@ -141,6 +143,7 @@ public class UserConnection
                     strMessage = "ACK";
                     break;
                 case 8: // Receive set of properties sent by client
+                    Console.WriteLine("Properties came");
                     float numP = System.BitConverter.ToInt32(readBuffer, 1);
                     float sizeP = System.BitConverter.ToSingle(readBuffer, 5);
                     float wStrP = System.BitConverter.ToSingle(readBuffer, 9);

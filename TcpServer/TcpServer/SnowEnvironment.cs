@@ -25,6 +25,7 @@ namespace TcpServer
             radius = radius_int;
             windStr = windStr_init;
             windDir = new double[3];
+            windDir_now = new double[3];
             for (int i = 0; i < 3; i++)
                 windDir[i] = windDir_init[i];
 			for (int i = 0; i < 3; i++)
