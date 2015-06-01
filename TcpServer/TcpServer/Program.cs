@@ -132,10 +132,6 @@ namespace TcpServer
                     break;
                 case "PROP": // Confirmation from client about packet reception
                     //Console.WriteLine("Parsing...");
-                    for (int i = 0; i < dataArray.Length; i++)
-                    {
-                        Console.WriteLine(dataArray[i]);
-                    }
                     double[] windDirInit = new double[3];
                     windDirInit[0] = 60;
                     windDirInit[1] = (double)float.Parse(dataArray[5]);

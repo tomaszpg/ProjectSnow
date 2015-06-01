@@ -143,7 +143,6 @@ public class UserConnection
                     strMessage = "ACK";
                     break;
                 case 8: // Receive set of properties sent by client
-                    Console.WriteLine("Properties came");
                     float numP = System.BitConverter.ToInt32(readBuffer, 1);
                     float sizeP = System.BitConverter.ToSingle(readBuffer, 5);
                     float wStrP = System.BitConverter.ToSingle(readBuffer, 9);
