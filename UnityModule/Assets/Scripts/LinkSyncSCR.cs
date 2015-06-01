@@ -6,7 +6,7 @@ using System.Security.Permissions;
 
 public class LinkSyncSCR : MonoBehaviour
 {
-    private int objNum = 500;
+    private int objNum = 5000;
     string lastMessage;
     public Transform playerCoord;
     private const string IP_ADDRESS = "127.0.0.1";

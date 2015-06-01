@@ -183,15 +183,22 @@ namespace SharpConnect
                         Array.Copy(readBuffer, 1, posCount, 0, 2);
                         float ct = System.BitConverter.ToInt16(posCount, 0);
                         //Debug.Log("Positions: " + ct);
-                        for (int i = 0; i < ct; i++)
+                        try
                         {
-                            counter++; // used in debug
-                            int posNum = System.BitConverter.ToInt32(readBuffer, i * 16 + 3); // Object number
-                            float xPos = System.BitConverter.ToSingle(readBuffer, i * 16 + 7); // x position
-                            float yPos = System.BitConverter.ToSingle(readBuffer, i * 16 + 11); // y position
-                            float zPos = System.BitConverter.ToSingle(readBuffer, i * 16 + 15); // z position
-                            flakes[posNum] = new SnowFlake(posNum, xPos, yPos, zPos);
-                            //Debug.Log(posNum +" "+ xPos +" "+ yPos +" "+ zPos);
+                            for (int i = 0; i < ct; i++)
+                            {
+                                counter++; // used in debug
+                                int posNum = System.BitConverter.ToInt32(readBuffer, i*16 + 3); // Object number
+                                float xPos = System.BitConverter.ToSingle(readBuffer, i*16 + 7); // x position
+                                float yPos = System.BitConverter.ToSingle(readBuffer, i*16 + 11); // y position
+                                float zPos = System.BitConverter.ToSingle(readBuffer, i*16 + 15); // z position
+                                flakes[posNum] = new SnowFlake(posNum, xPos, yPos, zPos);
+                                //Debug.Log(posNum +" "+ xPos +" "+ yPos +" "+ zPos);
+                            }
+                        }
+                        catch
+                        {
+                            // ignored
                         }
                         strMessage = "ACK";
                         break;
