@@ -7,7 +7,7 @@ using UnityEngineInternal;
 
 public class LinkSyncSCR : MonoBehaviour
 {
-    public enum Phase { Start, Stopping, Stop }
+    public enum Phase { Start, Continue, Stopping, Stop }
     public static int objNum { get; set; }
     public static float objSize { get; set; }
     public static float windStr { get; set; }
@@ -40,11 +40,12 @@ public class LinkSyncSCR : MonoBehaviour
 
     public void initializeSnowlakes()
     {
+        Debug.Log("liczba platkow" + objNum);
+        snowflakes = new GameObject[objNum];
         for (int i = 0; i < objNum; i++)
         {
-            GameObject newSnowflake = (GameObject)Instantiate(Resources.Load("snowflake_simple", typeof (GameObject)), new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity);
-            newSnowflake.tag = "Flake";
-            snowflakes[i] = newSnowflake;
+            snowflakes[i] = (GameObject)Instantiate(Resources.Load("snowflake_simple", typeof (GameObject)), new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity);
+            snowflakes[i].tag = "Flake";
         }
     }
 
@@ -54,7 +55,7 @@ public class LinkSyncSCR : MonoBehaviour
         
         //if (num == 100)
         //    cube.transform.position = new Vector3(x, y, z);
-           
+
         snowflakes[num].transform.position = new Vector3(x, y, z);
     }
 
@@ -64,9 +65,11 @@ public class LinkSyncSCR : MonoBehaviour
         {
             Debug.Log("Sending example properties to server");
             // 1.Number, 2.size, 3.windStr, 4.windStrFluc, 5.windDir, 6.windDirFluc, 7.radius, 8.noise
+            //test.SendProperties(100, 10.0f, 5.0f, 1.0f, 0.5f, 0.1f, 40.0f, 40.0f);
             test.SendProperties(objNum, objSize, windStr, windStrFluc, windDir, windDirFluc, radius, noise);
             snowflakes = new GameObject[objNum];
             initializeSnowlakes();
+            generate = Phase.Continue;
         }
 
         if (generate == Phase.Stopping)
@@ -74,7 +77,6 @@ public class LinkSyncSCR : MonoBehaviour
             GameObject[] toDestroy = GameObject.FindGameObjectsWithTag("Flake");
             foreach (GameObject flake in toDestroy)
                 Destroy(flake);
-
 
             generate = Phase.Stop;
         }
@@ -94,7 +96,7 @@ public class LinkSyncSCR : MonoBehaviour
             Debug.Log(test.res);
             lastMessage = test.res;
         }
-        if (test.counter != 0 && generate == Phase.Start)
+        if (test.counter != 0 && generate == Phase.Continue)
         {
             for (int i = 0; i < test.counter; i++)
             {
