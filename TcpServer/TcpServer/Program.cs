@@ -140,6 +140,7 @@ namespace TcpServer
                     Console.WriteLine("NOP: " + dataArray[1] +"\nRadius: "+ dataArray[7] +"\nWind Strength: "+ dataArray[3] +"\nWind direction cos[1]: "+
                         windDirInit[1] +"\nStrength fluctuation: "+ dataArray[4] +"\nDirection fluctuation: "+ dataArray[6]);
                     mainClient.clientReady = true;
+                    newConfig = true;
                     break;
             }
         }
