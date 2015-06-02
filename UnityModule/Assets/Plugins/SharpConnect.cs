@@ -15,10 +15,12 @@ namespace SharpConnect
 {
     public class Connector
     {
-        const int READ_BUFFER_SIZE = 2000 * 16;
+        const int READ_BUFFER_SIZE = 5100 * 16;
         const int PORT_NUM = 10000;
         private TcpClient client;
         private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
+        private byte[] secondaryBuffer = new byte[READ_BUFFER_SIZE];
+        private int secBufLength = 0;
         public ArrayList lstUsers = new ArrayList();
         public string strMessage = string.Empty;
         public string res = string.Empty;
@@ -141,6 +143,7 @@ namespace SharpConnect
         {
             try
             {
+                //Debug.Log("Bytes of secBuf: " + secondaryBuffer[0] + " " + secondaryBuffer[1]);
                 Thread.Sleep(2);
                 // Finish asynchronous read into readBuffer and return number of bytes read
                 int BytesRead = client.GetStream().EndRead(ar);
@@ -150,6 +153,18 @@ namespace SharpConnect
                     // if no bytes were read server has shut down
                     res = "Disconnected";
                     return;
+                }
+                //Debug.Log("Received message, first byte: " + readBuffer[0] + ", secBuf is " + secBufLength + " long");
+                if (secBufLength > 0)
+                {
+                    //Debug.Log("First bytes of buf: " + readBuffer[0] + " " + readBuffer[1] + ", first bytes of secBuf: " + secondaryBuffer[0] + " " + secondaryBuffer[1]);
+                    //Debug.Log("Connecting " + BytesRead + " bytes from new message with " + secBufLength + " bytes from last one for " + (BytesRead + secBufLength) + " total");
+                    Array.Copy(readBuffer, 0, secondaryBuffer, secBufLength, BytesRead);
+                    BytesRead += secBufLength;
+                    Array.Copy(secondaryBuffer, 0 , readBuffer, 0, BytesRead);
+                    //Debug.Log("First byte is " + readBuffer[0]);
+                    
+                    secBufLength = 0;
                 }
                 switch (readBuffer[0])
                 {
@@ -181,30 +196,41 @@ namespace SharpConnect
                     case 55: // Object number and position array
                         byte[] posCount = new byte[2];
                         Array.Copy(readBuffer, 1, posCount, 0, 2);
-                        float ct = System.BitConverter.ToInt16(posCount, 0);
+                        short ct = System.BitConverter.ToInt16(posCount, 0);
                         //Debug.Log("Positions: " + ct);
-                        try
+                        if (BytesRead == (16*ct + 3))
                         {
-                            for (int i = 0; i < ct; i++)
+                            try
                             {
-                                counter++; // used in debug
-                                int posNum = System.BitConverter.ToInt32(readBuffer, i*16 + 3); // Object number
-                                float xPos = System.BitConverter.ToSingle(readBuffer, i*16 + 7); // x position
-                                float yPos = System.BitConverter.ToSingle(readBuffer, i*16 + 11); // y position
-                                float zPos = System.BitConverter.ToSingle(readBuffer, i*16 + 15); // z position
-                                flakes[posNum] = new SnowFlake(posNum, xPos, yPos, zPos);
-                                //Debug.Log(posNum +" "+ xPos +" "+ yPos +" "+ zPos);
+                                for (int i = 0; i < ct; i++)
+                                {
+                                    counter++; // used in debug
+                                    int posNum = System.BitConverter.ToInt32(readBuffer, i*16 + 3); // Object number
+                                    float xPos = System.BitConverter.ToSingle(readBuffer, i*16 + 7); // x position
+                                    float yPos = System.BitConverter.ToSingle(readBuffer, i*16 + 11); // y position
+                                    float zPos = System.BitConverter.ToSingle(readBuffer, i*16 + 15); // z position
+                                    flakes[posNum] = new SnowFlake(posNum, xPos, yPos, zPos);
+                                    //Debug.Log(posNum +" "+ xPos +" "+ yPos +" "+ zPos);
+                                    strMessage = "ACK";
+                                }
+                            }
+                            catch
+                            {
+                                // ignored
                             }
                         }
-                        catch
+                        else
                         {
-                            // ignored
+                            Array.Copy(readBuffer, 0 , secondaryBuffer, 0, BytesRead);
+                            secBufLength = BytesRead;
+                            //Debug.Log("Passing " + secBufLength + " elements to secondary buffer, first bytes: " + secondaryBuffer[0] + " " + secondaryBuffer[1]);
+                            strMessage = "NONE";
                         }
-                        strMessage = "ACK";
                         break;
                 }
                 ProcessCommands(strMessage);
                 // Start a new asynchronous read into readBuffer
+                //Debug.Log("Bytes of secBuf endloop: " + secondaryBuffer[0] + " " + secondaryBuffer[1]);
                 client.GetStream().BeginRead(readBuffer, 0, READ_BUFFER_SIZE, new AsyncCallback(DoRead), null);
             }
             catch
@@ -230,6 +256,7 @@ namespace SharpConnect
                     break;
                 case "ACK":
                     // Received packet, send confirmation to server
+                    //Debug.Log("Sending ACK");
                     FnConfirm();
                     break;
                 case "REFUSE":

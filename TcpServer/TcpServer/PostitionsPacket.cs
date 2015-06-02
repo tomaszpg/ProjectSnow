@@ -37,7 +37,7 @@ namespace TcpServer
         // Maximum number of positions in one packet
         // !!! Larger packet - higher chance of splitting (and losing data as of now)
         // !!! Smaller packet - more communication initializations, longer transfer times
-        private const int MAX_SIZE = 1000;
+        private const int MAX_SIZE = 5000;
 
         private UserConnection client;
         private short counter;
