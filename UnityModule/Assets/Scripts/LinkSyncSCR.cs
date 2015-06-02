@@ -3,10 +3,22 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using SharpConnect;
 using System.Security.Permissions;
+using UnityEngineInternal;
 
 public class LinkSyncSCR : MonoBehaviour
 {
-    private int objNum = 5000;
+
+    public static int objNum { get; set; }
+    public static float objSize { get; set; }
+    public static float windStr { get; set; }
+    public static float windStrFluc { get; set; }
+    public static float windDir { get; set; }
+    public static float windDirFluc { get; set; }
+    public static float radius { get; set; }
+    public static float noise { get; set; }
+
+    public static bool generate { get; set; }
+
     string lastMessage;
     public Transform playerCoord;
     private const string IP_ADDRESS = "127.0.0.1";
@@ -42,11 +54,11 @@ public class LinkSyncSCR : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown("p"))
+        if (generate)
         {
             Debug.Log("Sending example properties to server");
             // 1.Number, 2.size, 3.windStr, 4.windStrFluc, 5.windDir, 6.windDirFluc, 7.radius, 8.noise
-            test.SendProperties(objNum, 10.0f, 5.0f, 1.0f, 0.5f, 0.1f, 40.0f, 40.0f);
+            test.SendProperties(objNum, objSize, windStr, windStrFluc, windDir, windDirFluc, radius, noise);
             snowflakes = new GameObject[objNum];
             initializeSnowlakes();
         }
