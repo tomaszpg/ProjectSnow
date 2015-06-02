@@ -137,7 +137,6 @@ namespace TcpServer
                     windDirInit[2] = 60;
                     otoczenie = new SnowEnvironment(Int32.Parse(dataArray[1]), (byte)float.Parse(dataArray[7]), (byte)float.Parse(dataArray[3]), 
                         windDirInit, (byte)float.Parse(dataArray[4]), float.Parse(dataArray[6]), 1.25, 9.81, 0.3, SCENE_HEIGHT);
-                    //Console.WriteLine("New properties received");
                     Console.WriteLine("NOP: " + dataArray[1] +"\nRadius: "+ dataArray[7] +"\nWind Strength: "+ dataArray[3] +"\nWind direction cos[1]: "+
                         windDirInit[1] +"\nStrength fluctuation: "+ dataArray[4] +"\nDirection fluctuation: "+ dataArray[6]);
                     mainClient.clientReady = true;
@@ -171,7 +170,7 @@ namespace TcpServer
         static private void InitComp(Intracommunicator comm)
         {
             newConfig = false;
-            Random random = new Random();
+            Random random = new Random(comm.Rank);
             pPerProc = otoczenie.getPiecesNumber() / comm.Size;
             number = otoczenie.getPiecesNumber() / comm.Size;
             int rest = otoczenie.getPiecesNumber() % comm.Size;
@@ -181,7 +180,7 @@ namespace TcpServer
                 number += rest;
             }
             particles = new SnowFlake[number];
-            //int[] particles = new int[number];
+
             for (int i = 0; i < number; i++)  //Inicjalizacja każdego płatka wraz z nadaniem pozycji startowej
             {
                 double[] pozycja_startowa = new double[3];
@@ -190,9 +189,6 @@ namespace TcpServer
                 pozycja_startowa[1] = (double)(random.Next(1, SCENE_HEIGHT * 1000)) / 1000;
                 pozycja_startowa[2] = (double)(random.Next(1, 10000)) / 10000 * Math.Sqrt(promien * promien - pozycja_startowa[0] * pozycja_startowa[0]) *
                                       Math.Pow(-1.0, (double)(random.Next(1, 3)));
-                //pozycja_startowa[2] = (double)(random.Next(1, 10000)) / 10000 * (double)promien * Math.Pow(-1.0, (double)(random.Next(1, 2)));   //wyznaczanie trzeciej współrzędnej płatka (z równania  okręgu o promieniu losowanym z przedziału <r,R> i środku (0,0)) z losowym znakiem
-                //if (i == 100 || i == 120 || i == 140)
-                //Console.WriteLine("Creating point " + i + ", x: " + pozycja_startowa[0] + " y: " + pozycja_startowa[1] + " z: " + pozycja_startowa[2]);
                 particles[i] = new SnowFlake(pPerProc * comm.Rank + i, pozycja_startowa, 0.000001, 0.00000312);
             }
             K = otoczenie.getC_coefficient() * particles[0].getSize() * otoczenie.getDensity() * 0.5;
@@ -236,7 +232,6 @@ namespace TcpServer
                         Console.WriteLine("Properties received, starting simulation");
                     }
 
-                    //SnowEnvironment snowEnvironment = otoczenie;
                     comm.Broadcast(ref otoczenie, 0);
 
                     InitComp(comm);
@@ -252,7 +247,6 @@ namespace TcpServer
                                 particles[i].NewPosition(PlayerPos,
                                     particles[0].LimitedSpeed(particles[0].getMass(), otoczenie.getGravitation(), K),
                                     time_step, otoczenie);
-                                //particles[i] = Compute(rnd);
                             }
                             SnowFlake[][] values = new SnowFlake[comm.Size][];
 
@@ -266,11 +260,8 @@ namespace TcpServer
                                     for (int j = 0; j < values[i].Length; j++)
                                     {
                                         double[] position = values[i][j].getPosition();
-                                        posPack.AddPosition(pPerProc*i + values[i][j].getId(), (float) position[0],
+                                        posPack.AddPosition(values[i][j].getId(), (float) position[0],
                                             (float) position[1], (float) position[2]);
-
-                                        //if (pPerProc * i + values[i][j].getId() == 100)
-                                        //Console.WriteLine(i + " nr: " + j + " x: " + (float)position[0] + " y: " + (float)position[1] + " z: " + (float)position[2]);
                                     }
                                 }
                                 if (userConnected)
@@ -282,7 +273,6 @@ namespace TcpServer
                             comm.Broadcast(ref userConnected, 0);
                             if (!userConnected)
                             {
-                                run = false;
                                 userConnected = false;
                                 break;
                             }
@@ -294,7 +284,7 @@ namespace TcpServer
                                 InitComp(comm);
                             }
 
-                            System.Threading.Thread.Sleep(33);
+                            Thread.Sleep(10);
                         }
                         catch (Exception e)
                         {
