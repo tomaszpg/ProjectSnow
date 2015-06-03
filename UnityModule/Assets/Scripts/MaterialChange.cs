@@ -3,12 +3,15 @@ using System.Collections;
 
 public class MaterialChange : MonoBehaviour {
 
-    float time = 0.0f;
-    public int duration = 80;
-    private bool snowing = false;
+    float time;
+    public int duration;
+    private bool snowing;
     private Renderer renderer;
 	void Start ()
 	{
+	    time = 0.0f;
+	    duration = 100;
+	    snowing = false;
         renderer = GetComponent<Renderer>();
         renderer.enabled = true;
 
