@@ -55,8 +55,8 @@ namespace TcpServer
                 {
                     otoczenie.setWindDir_now(otoczenie.getWindDir_now());
                     r[i] = (double)random.Next((int)System.Math.Max(otoczenie.getWindStr() - otoczenie.getWindStrFluc(), 0), (int)(otoczenie.getWindStr() + otoczenie.getWindStrFluc())) * otoczenie.getWindDir_now()[i];
-                    System.Console.WriteLine("Skladowa wiatru= ");
-                    System.Console.WriteLine(r[i]);
+                    /*System.Console.WriteLine("Skladowa wiatru= ");
+                    System.Console.WriteLine(r[i]);*/
                     //System.Threading.Thread.Sleep(1000);
                 }
                 else
@@ -82,7 +82,7 @@ namespace TcpServer
                 //Wyznaczenie skladowych wektora translacji płatka sniegu
                 T[i] = r[i] * time;
                 if (i == 1)
-                    T[i] += LimitSpeed[1] * time*2.0;
+                    T[i] += LimitSpeed[1] * time*0.25;
             }
 
             for (int i = 0; i < 3; i++)
