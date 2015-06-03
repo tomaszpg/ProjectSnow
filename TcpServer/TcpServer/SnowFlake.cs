@@ -51,20 +51,28 @@ namespace TcpServer
             for (int i = 0; i < 3; i++)
             {
 				int random_variable=random.Next(0,100);
-				if(random_variable>40)
-					otoczenie.setWindDir_now(otoczenie.getWindDir_now());
-				else
-				{
-					for(double j=60.0; j<100.0; j+=10.0)
-					{
+                if (random_variable >=20)
+                {
+                    otoczenie.setWindDir_now(otoczenie.getWindDir_now());
+                    r[i] = (double)random.Next((int)System.Math.Max(otoczenie.getWindStr() - otoczenie.getWindStrFluc(), 0), (int)(otoczenie.getWindStr() + otoczenie.getWindStrFluc())) * otoczenie.getWindDir_now()[i];
+                    System.Console.WriteLine("Skladowa wiatru= ");
+                    System.Console.WriteLine(r[i]);
+                    //System.Threading.Thread.Sleep(1000);
+                }
+                else
+                {
+                    for (double j = 80; j < 100.0; j += 5.0)
+                    {
 
-						if((double)random_variable>j)
-						{
-							double range_divisor=(100.0-j)/10.0;
-                			r[i] = random.Next((int)System.Math.Max(otoczenie.getWindStr() - otoczenie.getWindStrFluc(), 0), (int)(otoczenie.getWindStr() + otoczenie.getWindStrFluc())) * random.Next((int)(100 * System.Math.Max((otoczenie.getWindDir_now())[i] - otoczenie.getWindDirFluc()/range_divisor, 0)), (int)(100 * (otoczenie.getWindDir_now())[i])) * 0.01;
-						}
-					}
-				}
+                        if ((double)random_variable > j)
+                        {
+                            double range_divisor = (100.0 - j) / 5.0;
+                            r[i] = random.Next((int)System.Math.Max(otoczenie.getWindStr() - otoczenie.getWindStrFluc()/range_divisor, 0), (int)(otoczenie.getWindStr() + otoczenie.getWindStrFluc()/range_divisor)) * random.Next((int)(100 * System.Math.Max((otoczenie.getWindDir_now())[i] - otoczenie.getWindDirFluc()/range_divisor, 0)), (int)(100 * (otoczenie.getWindDir_now())[i])) * 0.01;
+                            System.Console.WriteLine("Skladowa wiatru= ");
+                            System.Console.WriteLine(i);
+                        }
+                    }
+                }
             }
 
             double[] T = new double[3];
@@ -74,7 +82,7 @@ namespace TcpServer
                 //Wyznaczenie skladowych wektora translacji płatka sniegu
                 T[i] = r[i] * time;
                 if (i == 1)
-                    T[i] += LimitSpeed[1] * time;
+                    T[i] += LimitSpeed[1] * time*2.0;
             }
 
             for (int i = 0; i < 3; i++)

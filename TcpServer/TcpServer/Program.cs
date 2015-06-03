@@ -132,9 +132,9 @@ namespace TcpServer
                 case "PROP": // Confirmation from client about packet reception
                     //Console.WriteLine("Parsing...");
                     double[] windDirInit = new double[3];
-                    windDirInit[0] = 60;
+                    windDirInit[0] = 0.5;
                     windDirInit[1] = (double)float.Parse(dataArray[5]);
-                    windDirInit[2] = 60;
+                    windDirInit[2] = 0.5;
                     otoczenie = new SnowEnvironment(Int32.Parse(dataArray[1]), (byte)float.Parse(dataArray[7]), (byte)float.Parse(dataArray[3]), 
                         windDirInit, (byte)float.Parse(dataArray[4]), float.Parse(dataArray[6]), 1.25, 9.81, 0.3, SCENE_HEIGHT);
                     Console.WriteLine("NOP: " + dataArray[1] +"\nRadius: "+ dataArray[7] +"\nWind Strength: "+ dataArray[3] +"\nWind direction cos[1]: "+
