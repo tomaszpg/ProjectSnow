@@ -11,26 +11,22 @@ namespace TcpServer
     {
         private int sPiecesNum;     //Liczba płatków
         private byte radius;        //Promień sceny
-        private byte windStr;       //Siła wiatru
-        private double[] windDir;   //wektor cosinusów kątów nachylenia wektora wiatru względem osi x, y, z
+        private byte windStr;       //Siła wiatru - aktualna
+        private byte windStrSET;    //siła wiatru - ustawiona
+        private double windDir;   //kąt ustawienia wiatru w płaszczyźnie XZ - aktualny, tzn. brany do obliczeń
+        private double windDirSET; //kąt ustawienia wiatru w płaszczyźnie XZ - ustawiony przez użytkownika w oknie parametrów
         private byte windStrFluc;   //Maksymalna fluktuancja siły wiatru
         private double windDirFluc; //Maksymalna fluktuancja kierunku wiatru- jednakowa dla wszystkich współrzędnych
         private double density;     //gęstośc ośrodka, w którym wystepuje opad (tutaj- gęstość powietrza)
         private double gravitation; //stała grawitacji
         private double C_coefficient;   //Współczynnik C- podobno zawsze równy 0.3
         private byte Scene_Height;  //Wysokość sceny
-		private double[] windDir_now;
-        public SnowEnvironment(int sPiecesNum_init, byte radius_int, byte windStr_init, double[] windDir_init, byte windStrFluc_init, double windDirFluc_init, double density_init, double gravitation_init, double C_coefficient_init, byte Scene_Height_init)
+        public SnowEnvironment(int sPiecesNum_init, byte radius_int, byte windStr_init, double windDir_init, byte windStrFluc_init, double windDirFluc_init, double density_init, double gravitation_init, double C_coefficient_init, byte Scene_Height_init)
         {
             sPiecesNum = sPiecesNum_init;
             radius = radius_int;
-            windStr = windStr_init;
-            windDir = new double[3];
-            windDir_now = new double[3];
-            for (int i = 0; i < 3; i++)
-                windDir[i] = windDir_init[i];
-			for (int i = 0; i < 3; i++)
-				windDir_now[i] = windDir_init[i];
+            windStrSET = windStr_init;
+            windDirSET = windDir_init;
             windStrFluc = windStrFluc_init;
             windDirFluc = windDirFluc_init;
             density = density_init;
@@ -59,9 +55,13 @@ namespace TcpServer
         {
             return windStrFluc;
         }
-        public double[] getWindDir()
+        public double getWindDir()
         {
             return windDir;
+        }
+        public double getWindDirSET()
+        {
+            return windDirSET;
         }
         public double getWindDirFluc()
         {
@@ -79,14 +79,13 @@ namespace TcpServer
         {
             return Scene_Height;
         }
-		public double[] getWindDir_now()
+		public void setWindDir(Random random)
 		{
-			return windDir_now;
+            windDir=(double)random.Next((int)(windDirSET - windDirFluc), (int)(windDirSET + windDirFluc));
 		}
-		public void setWindDir_now(double[] setDir)
-		{
-			for (int i=0; i<3; i++)
-				windDir_now [i] = setDir [i];
-		}
+        public void setWindStr(Random random)
+        {
+            windStr = (byte)random.Next((int)(windStrSET - windStrFluc),(int)(windStrSET + windStrFluc));
+        }
     }
 }

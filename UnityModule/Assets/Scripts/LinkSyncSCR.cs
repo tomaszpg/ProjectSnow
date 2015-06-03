@@ -46,6 +46,7 @@ public class LinkSyncSCR : MonoBehaviour
         {
             snowflakes[i] = (GameObject)Instantiate(Resources.Load("snowflake_simple", typeof (GameObject)), new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity);
             snowflakes[i].tag = "Flake";
+			snowflakes[i].transform.localScale = new Vector3(objSize/10.0f, objSize/10.0f, objSize/10.0f);
         }
     }
 

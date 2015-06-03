@@ -33,58 +33,34 @@ namespace TcpServer
             return wynik;
         }*/
         //Funkcja obliczająca wartość prędkości granicznej płatka- wektor o zerowych współrzędnych x i z.
-        public double[] LimitedSpeed(double mass, double gravity, double K)
+        public double LimitedSpeed(double mass, double gravity, double K)
         {
-            double[] wynik = new double[3];
-            wynik[0] = 0;
-            wynik[1] = -Math.Sqrt(mass * gravity / K);
-            wynik[2] = 0;
+            double wynik = -Math.Sqrt(mass * gravity / K);
             return wynik;
         }
         //Najważniejsza funkcja- obliczanie nowej pozycji płatka będącej wypadkową warunków atmosferycznych, prędkości granicznej i aktualnego położenia płatka (może istnieć koniecznośc jego symetrycznego odbicia względem kamery)
-        public void NewPosition(double[] PlayerPos, double[] LimitSpeed, double time, SnowEnvironment otoczenie)
+        public void NewPosition(double[] PlayerPos, double LimitSpeed, double time, SnowEnvironment otoczenie)
         {
 
             Random random = new Random();
             double[] r = new double[3];
 			//Wyznaczenie składowych wektora prędkości wiatru- z uwzględnieniem fluktuancji siły i kierunku wiatru
-            for (int i = 0; i < 3; i++)
-            {
-				int random_variable=random.Next(0,100);
-                if (random_variable >=20)
-                {
-                    otoczenie.setWindDir_now(otoczenie.getWindDir_now());
-                    r[i] = (double)random.Next((int)System.Math.Max(otoczenie.getWindStr() - otoczenie.getWindStrFluc(), 0), (int)(otoczenie.getWindStr() + otoczenie.getWindStrFluc())) * otoczenie.getWindDir_now()[i];
-                    /*System.Console.WriteLine("Skladowa wiatru= ");
-                    System.Console.WriteLine(r[i]);*/
-                    //System.Threading.Thread.Sleep(1000);
-                }
-                else
-                {
-                    for (double j = 80; j < 100.0; j += 5.0)
-                    {
-
-                        if ((double)random_variable > j)
-                        {
-                            double range_divisor = (100.0 - j) / 5.0;
-                            r[i] = random.Next((int)System.Math.Max(otoczenie.getWindStr() - otoczenie.getWindStrFluc()/range_divisor, 0), (int)(otoczenie.getWindStr() + otoczenie.getWindStrFluc()/range_divisor)) * random.Next((int)(100 * System.Math.Max((otoczenie.getWindDir_now())[i] - otoczenie.getWindDirFluc()/range_divisor, 0)), (int)(100 * (otoczenie.getWindDir_now())[i])) * 0.01;
-                            System.Console.WriteLine("Skladowa wiatru= ");
-                            System.Console.WriteLine(i);
-                        }
-                    }
-                }
-            }
-
+            double direction_cosine=Math.Cos(otoczenie.getWindDir()*Math.PI/180.0);
+            double direction_sine = Math.Sin(otoczenie.getWindDir() * Math.PI / 180.0);
+            r[0] = otoczenie.getWindStr() * direction_sine;
+            r[1] = LimitSpeed;
+            r[2] = otoczenie.getWindStr() * direction_cosine;
+            //System.Console.WriteLine(r[0]);
+            //System.Console.WriteLine(r[1]);
+            //System.Console.WriteLine(r[2]);
+            //System.Threading.Thread.Sleep(2000);
             double[] T = new double[3];
 
             for (int i = 0; i < 3; i++)
             {
                 //Wyznaczenie skladowych wektora translacji płatka sniegu
-                T[i] = r[i] * time;
-                if (i == 1)
-                    T[i] += LimitSpeed[1] * time*0.25;
+                T[i] = r[i] * time*0.5;
             }
-
             for (int i = 0; i < 3; i++)
             {
                 //Wykonanie translacji płatka

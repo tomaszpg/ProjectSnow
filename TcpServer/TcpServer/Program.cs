@@ -131,14 +131,11 @@ namespace TcpServer
                     break;
                 case "PROP": // Confirmation from client about packet reception
                     //Console.WriteLine("Parsing...");
-                    double[] windDirInit = new double[3];
-                    windDirInit[0] = 0.5;
-                    windDirInit[1] = (double)float.Parse(dataArray[5]);
-                    windDirInit[2] = 0.5;
+                    double windDirInit = (double)float.Parse(dataArray[5]);
                     otoczenie = new SnowEnvironment(Int32.Parse(dataArray[1]), (byte)float.Parse(dataArray[7]), (byte)float.Parse(dataArray[3]), 
                         windDirInit, (byte)float.Parse(dataArray[4]), float.Parse(dataArray[6]), 1.25, 9.81, 0.3, SCENE_HEIGHT);
                     Console.WriteLine("NOP: " + dataArray[1] +"\nRadius: "+ dataArray[7] +"\nWind Strength: "+ dataArray[3] +"\nWind direction cos[1]: "+
-                        windDirInit[1] +"\nStrength fluctuation: "+ dataArray[4] +"\nDirection fluctuation: "+ dataArray[6]);
+                        windDirInit +"\nStrength fluctuation: "+ dataArray[4] +"\nDirection fluctuation: "+ dataArray[6]);
                     mainClient.clientReady = true;
                     newConfig = true;
                     break;
@@ -240,9 +237,12 @@ namespace TcpServer
                     bool run = true;
                     while (run)
                     {
+                        Random random = new Random();
+                        otoczenie.setWindDir(random);
+                        otoczenie.setWindStr(random);
                         try
                         {
-                            comm.Broadcast(ref PlayerPos, 0);
+                            comm.Broadcast(ref PlayerPos, 0);                             
                             for (int i = 0; i < number; i++)
                             {
                                 particles[i].NewPosition(PlayerPos,
@@ -293,6 +293,7 @@ namespace TcpServer
                             Console.WriteLine(e);
                             run = false;
                         }
+                        random = null;
                     }
                 }
             }
