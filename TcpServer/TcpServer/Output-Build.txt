@@ -1,0 +1,2 @@
+﻿Error occurred while restoring NuGet packages: Unable to locate the solution directory. Please ensure that the solution has been saved.
+========== Build: 0 succeeded, 0 failed, 1 up-to-date, 0 skipped ==========

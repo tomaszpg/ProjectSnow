@@ -22,7 +22,8 @@ namespace TcpServer
         private static bool newConfig = false;
 
         private static int particeNumber = 100;       
-
+        private static double signDir = 1.0;
+        private static double signStr = 1.0;
         // Connect user if there is slot available, otherwise send refuse message
         static private void ConnectUser(string userName, UserConnection sender)
         {
@@ -238,8 +239,24 @@ namespace TcpServer
                     while (run)
                     {
                         Random random = new Random();
-                        otoczenie.setWindDir(random);
-                        otoczenie.setWindStr(random);
+                        Random randomDir = new Random();
+                        Random randomStr = new Random();
+                        if (otoczenie.getWindDir() >= otoczenie.getWindDirSET() + otoczenie.getWindDirFluc())
+                            signDir = -1.0;
+                        if (otoczenie.getWindDir() <= otoczenie.getWindDirSET() - otoczenie.getWindDirFluc())
+                            signDir = 1.0;
+                        if (otoczenie.getWindStr() >= otoczenie.getWindStrSET() + otoczenie.getWindStrFluc())
+                            signStr = -1.0;
+                        if (otoczenie.getWindStr() <= otoczenie.getWindStrSET() - otoczenie.getWindStrFluc())
+                            signStr = 1.0;
+                        int ranDir = randomDir.Next(0, 100);
+                        int ranStr = randomStr.Next(0, 100);
+                        if (ranDir <= 50)
+                            signDir *= -1.0;
+                        if (ranDir <= 50)
+                            signDir *= -1.0;
+                        otoczenie.setWindDir(signDir);
+                        otoczenie.setWindStr(signStr);
                         try
                         {
                             comm.Broadcast(ref PlayerPos, 0);                             
