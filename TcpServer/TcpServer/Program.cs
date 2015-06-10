@@ -238,6 +238,7 @@ namespace TcpServer
                     bool run = true;
                     while (run)
                     {
+                        //zmiany
                         Random random = new Random();
                         Random randomDir = new Random();
                         Random randomStr = new Random();
