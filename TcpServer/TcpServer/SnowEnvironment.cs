@@ -88,7 +88,7 @@ namespace TcpServer
         }
         public void setWindDir(double signDir)
 		{
-            windDir += signDir;
+            windDir += signDir*0.5;
 		}
         public void setWindStr(double signStr)
         {
